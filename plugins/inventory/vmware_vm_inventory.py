@@ -459,6 +459,33 @@ class BaseVMwareInventory:
         return result
 
 
+def camel_dict_to_lowercase(camel_dict, reversible=False, ignore_list=()):
+
+    def value_is_list(camel_list):
+
+        checked_list = []
+        for item in camel_list:
+            if isinstance(item, dict):
+                checked_list.append(camel_dict_to_lowercase(item, reversible))
+            elif isinstance(item, list):
+                checked_list.append(value_is_list(item))
+            else:
+                checked_list.append(item)
+
+        return checked_list
+
+    snake_dict = {}
+    for k, v in camel_dict.items():
+        if isinstance(v, dict) and k not in ignore_list:
+            snake_dict[k.lower()] = camel_dict_to_lowercase(v, reversible)
+        elif isinstance(v, list) and k not in ignore_list:
+            snake_dict[k.lower()] = value_is_list(v)
+        else:
+            snake_dict[k.lower()] = v
+
+    return snake_dict
+
+
 class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     NAME = 'community.vmware.vmware_vm_inventory'
@@ -666,8 +693,10 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
         # Hostvars formats manipulation
         host_properties = host_properties if with_nested_properties else to_flatten_dict(host_properties)
 
-        if self.get_option('with_sanitized_property_name'):
-            host_properties = camel_dict_to_snake_dict(host_properties)
+        # TODO: make as part of the option
+        host_properties = camel_dict_to_lowercase(host_properties)
+        # if self.get_option('with_sanitized_property_name'):
+        #     host_properties = camel_dict_to_snake_dict(host_properties)
 
         can_sanitize = self.get_option('with_sanitized_property_name')
         for k, v in host_properties.items():
