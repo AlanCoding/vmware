@@ -647,6 +647,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
 
     def _can_add_host(self, host_filters, host_properties, host, strict=False):
         for host_filter in host_filters:
+            can_add_host = True
             try:
                 can_add_host = self._compose(host_filter, host_properties)
             except Exception as e:  # pylint: disable=broad-except
