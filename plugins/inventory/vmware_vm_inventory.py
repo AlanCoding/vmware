@@ -652,6 +652,7 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             except Exception as e:  # pylint: disable=broad-except
                 if strict:
                     raise AnsibleError("Could not evaluate %s as host_filters %s" % (host_filter, to_native(e)))
+                display.warning(to_native(e))
 
             if not can_add_host:
                 return False
