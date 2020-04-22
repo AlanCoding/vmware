@@ -8,7 +8,7 @@
 from __future__ import (absolute_import, division, print_function)
 __metaclass__ = type
 
-DOCUMENTATION = r'''
+DOCUMENTATION = '''
     name: vmware_vm_inventory
     plugin_type: inventory
     short_description: VMware Guest inventory source
@@ -628,6 +628,14 @@ class InventoryModule(BaseInventoryPlugin, Constructable, Cacheable):
             if host not in hostvars and self._can_add_host(host_filters, host_properties, host, strict):
                 hostvars[host] = host_properties
                 self._populate_host_properties(host_properties, host)
+
+                # Use constructed if applicable
+                # Composed variables
+                self._set_composite_vars(self.get_option('compose'), host_properties, host, strict=strict)
+                # Complex groups based on jinja2 conditionals, hosts that meet the conditional are added to group
+                self._add_host_to_composed_groups(self.get_option('groups'), host_properties, host, strict=strict)
+                # Create groups based on variable values and add the corresponding hosts to it
+                self._add_host_to_keyed_groups(self.get_option('keyed_groups'), host_properties, host, strict=strict)
 
         return hostvars
 
